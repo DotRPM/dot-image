@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 import { useAuthenticatedFetch } from '../hooks';
 import { useNavigate } from 'react-router-dom';
 import GeneratorModal from '../components/generator/GeneratorModal';
-import ChatBanner from '../components/banners/chatBanner';
+import ChatBanner from '../components/banners/ChatBanner';
 
 export default function HomePage() {
   const fetch = useAuthenticatedFetch();
