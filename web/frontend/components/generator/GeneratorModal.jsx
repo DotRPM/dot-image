@@ -9,12 +9,13 @@ export default function GeneratorModal({
   onClose,
   products,
   setProducts,
-  loadProducts
+  loadProducts,
+  childsFetching,
+  setChildsFetching
 }) {
   const fetch = useAuthenticatedFetch();
   const [regenerateTrigger, setRegenerateTrigger] = useState(1);
   const [savingStatus, setSavingStatus] = useState('idle');
-  const [childsFetching, setChildsFetching] = useState(0);
 
   const handleSave = async () => {
     setSavingStatus('saving');
