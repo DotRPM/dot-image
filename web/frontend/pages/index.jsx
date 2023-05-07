@@ -18,9 +18,12 @@ import { useAuthenticatedFetch } from '../hooks';
 import GeneratorModal from '../components/generator/GeneratorModal';
 import ChatBanner from '../components/banners/ChatBanner';
 import Joyride, { ACTIONS, EVENTS, STATUS } from 'react-joyride';
+import { useNavigate } from 'react-router-dom';
+import FreeLimitBanner from '../components/banners/FreeLimitBanner';
 
 export default function HomePage() {
   const fetch = useAuthenticatedFetch();
+  const navigate = useNavigate();
   const [{ run, steps, stepIndex }, setJoyride] = useState({
     run: false,
     steps: [
@@ -167,7 +170,13 @@ export default function HomePage() {
   };
 
   return (
-    <Page title="Generate image for products">
+    <Page
+      title="Generate image for products"
+      primaryAction={{
+        content: 'Plans & pricing',
+        onAction: () => navigate('/plans')
+      }}
+    >
       <Joyride
         steps={steps}
         stepIndex={stepIndex}
@@ -178,6 +187,9 @@ export default function HomePage() {
       <Layout>
         <Layout.Section>
           <ChatBanner />
+        </Layout.Section>
+        <Layout.Section>
+          <FreeLimitBanner />
         </Layout.Section>
         <Layout.Section>
           <Card>

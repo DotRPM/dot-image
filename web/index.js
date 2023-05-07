@@ -8,7 +8,9 @@ import shopify from './shopify.js';
 import productCreator from './product-creator.js';
 import GDPRWebhookHandlers from './gdpr.js';
 
-import { imageRouter, productsRouter } from './routes/index.js';
+import { imageRouter, plansRouter, productsRouter } from './routes/index.js';
+import connectDb from './mongodb.js';
+import Shop from './models/Shop.js';
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
 
@@ -19,11 +21,31 @@ const STATIC_PATH =
 
 const app = express();
 
+connectDb();
+
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
+  // storing store data on installation
+  async (req, res, next) => {
+    const shop = (
+      await shopify.api.rest.Shop.all({
+        session: res.locals.shopify.session
+      })
+    )[0];
+    await Shop.findOneAndUpdate(
+      { domain: shop.myshopify_domain },
+      {
+        name: shop.name,
+        domain: shop.myshopify_domain,
+        email: shop.email
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    next();
+  },
   shopify.redirectToShopifyOrAppRoot()
 );
 app.post(
@@ -40,6 +62,7 @@ app.use(express.json());
 
 app.use('/api/products', productsRouter);
 app.use('/api/image', imageRouter);
+app.use('/api/plans', plansRouter);
 
 app.use(serveStatic(STATIC_PATH, { index: false }));
 

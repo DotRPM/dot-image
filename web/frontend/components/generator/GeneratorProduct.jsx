@@ -7,7 +7,12 @@ import {
   Thumbnail,
   Tooltip
 } from '@shopify/polaris';
-import { TickMinor, DeleteMinor, RefreshMinor } from '@shopify/polaris-icons';
+import {
+  TickMinor,
+  DeleteMinor,
+  RefreshMinor,
+  AlertMinor
+} from '@shopify/polaris-icons';
 import { useState, useEffect } from 'react';
 import { useAuthenticatedFetch } from '../../hooks';
 
@@ -20,18 +25,30 @@ export default function GeneratorProduct({
 }) {
   const fetch = useAuthenticatedFetch();
 
-  const [generating, setGenerating] = useState(false);
+  const [generatingStatus, setGeneratingStatus] = useState(false);
   const [image, setImage] = useState(product.image?.src);
 
   const generateImage = async () => {
     setFetching((state) => ++state);
-    setGenerating(true);
+    setGeneratingStatus('generating');
     const response = await fetch(`/api/image/${product.title}`);
     const data = await response.json();
-    setImage(data.src);
-    changeImage(product.id, data.src);
-    setGenerating(false);
-    setFetching((state) => --state);
+    if (data.error) {
+      switch (data.error) {
+        case 1:
+          setGeneratingStatus('expired');
+          break;
+        default:
+          setGeneratingStatus('error');
+          break;
+      }
+      setFetching((state) => --state);
+    } else {
+      setImage(data.src);
+      changeImage(product.id, data.src);
+      setGeneratingStatus('generated');
+      setFetching((state) => --state);
+    }
   };
 
   useEffect(() => {
@@ -45,17 +62,34 @@ export default function GeneratorProduct({
           <Thumbnail source={image} />
           <div>
             <TextStyle variation="strong">{product.title}</TextStyle>
-            {generating ? (
+            {generatingStatus == 'generating' && (
               <Stack alignment="center" spacing="extraTight">
                 <Spinner size="small" />
                 <TextStyle variation="warning">
                   Generating new image...
                 </TextStyle>
               </Stack>
-            ) : (
+            )}
+            {generatingStatus == 'generated' && (
               <Stack alignment="center" spacing="extraTight">
                 <Icon source={TickMinor} color="success" />
                 <TextStyle variation="positive">New image generated.</TextStyle>
+              </Stack>
+            )}
+            {generatingStatus == 'expired' && (
+              <Stack alignment="center" spacing="extraTight">
+                <Icon source={AlertMinor} color="warning" />
+                <TextStyle variation="warning">
+                  Reached free limit of 20 image generation.
+                </TextStyle>
+              </Stack>
+            )}
+            {generatingStatus == 'error' && (
+              <Stack alignment="center" spacing="extraTight">
+                <Icon source={AlertMinor} color="critical" />
+                <TextStyle variation="negative">
+                  Something went wrong.
+                </TextStyle>
               </Stack>
             )}
           </div>
