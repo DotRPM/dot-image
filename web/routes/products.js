@@ -24,6 +24,23 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/some', async (req, res) => {
+  try {
+    let query = req.query;
+    console.log(query);
+    const products = await shopify.api.rest.Product.all({
+      session: res.locals.shopify.session,
+      ...query
+    });
+    res.status(200).json({
+      products
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     for (const product of req.body.products) {
