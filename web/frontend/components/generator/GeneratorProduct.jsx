@@ -4,6 +4,7 @@ import {
   Icon,
   Spinner,
   Stack,
+  TextField,
   TextStyle,
   Thumbnail,
   Tooltip
@@ -12,7 +13,8 @@ import {
   TickMinor,
   DeleteMinor,
   RefreshMinor,
-  AlertMinor
+  AlertMinor,
+  SendMajor
 } from '@shopify/polaris-icons';
 import { useState, useEffect } from 'react';
 import { useAuthenticatedFetch } from '../../hooks';
@@ -31,11 +33,12 @@ export default function GeneratorProduct({
   const [generatingStatus, setGeneratingStatus] = useState(false);
   const [image, setImage] = useState(product.image?.src);
   const [openModal, setOpenModal] = useState(false);
+  const [prompt, setPrompt] = useState('');
 
-  const generateImage = async () => {
+  const generateImage = async (prompt) => {
     setFetching((state) => ++state);
     setGeneratingStatus('generating');
-    const response = await fetch(`/api/image/${product.title}`);
+    const response = await fetch(`/api/image/${prompt}`);
     const data = await response.json();
     if (data.error) {
       switch (data.error) {
@@ -56,7 +59,7 @@ export default function GeneratorProduct({
   };
 
   useEffect(() => {
-    generateImage();
+    generateImage(product.title);
   }, [trigger]);
 
   return (
@@ -67,7 +70,7 @@ export default function GeneratorProduct({
             <div onClick={() => setOpenModal(true)}>
               <Thumbnail source={image} size="large" />
             </div>
-            <div>
+            <Stack vertical spacing="tight">
               <TextStyle variation="strong">{product.title}</TextStyle>
               {generatingStatus == 'generating' && (
                 <Stack alignment="center" spacing="extraTight">
@@ -101,13 +104,31 @@ export default function GeneratorProduct({
                   </TextStyle>
                 </Stack>
               )}
-            </div>
+
+              <TextField
+                type="text"
+                value={prompt}
+                onChange={(value) => setPrompt(value)}
+                placeholder="Custom prompt"
+                autoComplete="off"
+                connectedRight={
+                  <Button
+                    icon={SendMajor}
+                    onClick={() => generateImage(prompt)}
+                    disabled={!prompt || generatingStatus == 'generating'}
+                  ></Button>
+                }
+              />
+            </Stack>
           </Stack>
         </Stack.Item>
         <Stack.Item>
           <Stack alignment="center">
             <Tooltip content="Regenerate image">
-              <Button icon={RefreshMinor} onClick={generateImage}></Button>
+              <Button
+                icon={RefreshMinor}
+                onClick={() => generateImage(product.title)}
+              ></Button>
             </Tooltip>
             <Tooltip content="Remove product">
               <Button
