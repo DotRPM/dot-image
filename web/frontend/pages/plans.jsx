@@ -5,7 +5,8 @@ import {
   List,
   Button,
   TextContainer,
-  TextStyle
+  TextStyle,
+  Badge
 } from '@shopify/polaris';
 import { useEffect, useState } from 'react';
 import { useAuthenticatedFetch } from '../hooks';
@@ -85,10 +86,26 @@ export default function HomePage() {
         </Layout.Section>
 
         <Layout.Section oneHalf>
-          <Card title="Pro">
+          <Card
+            title="Pro"
+            actions={[
+              {
+                content: (
+                  <Badge status="success" size="medium">
+                    50% off
+                  </Badge>
+                )
+              }
+            ]}
+          >
             <Card.Section>
               <span style={{ fontSize: '30px' }}>
-                <TextStyle variation="strong">$ 12 /</TextStyle>{' '}
+                <TextStyle variation="strong">
+                  <strike style={{ color: 'red', fontSize: '1.5rem' }}>
+                    <span style={{ color: 'grey' }}>$ 12</span>
+                  </strike>{' '}
+                  $ 6 /
+                </TextStyle>{' '}
               </span>
               <TextStyle variation="strong">month</TextStyle>
             </Card.Section>

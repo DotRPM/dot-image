@@ -74,7 +74,11 @@ export default function HomePage() {
     <Page
       title="Generate image for products"
       primaryAction={{
-        content: 'Plans & pricing',
+        content: (
+          <TextStyle>
+            Plans & pricing <Badge status="attention">50% off</Badge>
+          </TextStyle>
+        ),
         onAction: () => navigate('/plans')
       }}
     >

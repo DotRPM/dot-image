@@ -24,7 +24,7 @@ router.get('/start', async (req, res) => {
   try {
     const url = await requestPayment(session, {
       chargeName: 'Pro plan',
-      amount: 12,
+      amount: 6,
       currencyCode: 'USD',
       interval: 'EVERY_30_DAYS'
     });
