@@ -27,6 +27,8 @@ export default function HomePage() {
   const [nextPageParams, setNextPageParams] = useState(null);
   const [prevPageParams, setPrevPageParams] = useState(null);
   const [fetchingStatus, setFetchingStatus] = useState('loading');
+  const [credits, setCredits] = useState(0);
+  const [fetchingCredits, setFetchingCredits] = useState(false);
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(products);
   const resourceName = {
@@ -55,8 +57,17 @@ export default function HomePage() {
     }
   };
 
+  const getCredits = async () => {
+    setFetchingCredits(true);
+    const res = await fetch('/api/shop/credits');
+    const data = await res.json();
+    setCredits(data.credits);
+    setFetchingCredits(false);
+  };
+
   useEffect(() => {
     loadProducts();
+    getCredits();
   }, []);
 
   const promotedBulkActions = [
@@ -76,10 +87,11 @@ export default function HomePage() {
       primaryAction={{
         content: (
           <TextStyle>
-            Plans & pricing <Badge status="attention">50% off</Badge>
+            Credits <Badge status="attention">{credits}</Badge>
           </TextStyle>
         ),
-        onAction: () => navigate('/plans')
+        onAction: () => navigate('/plans'),
+        loading: fetchingCredits
       }}
     >
       <Layout>

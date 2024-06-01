@@ -91,9 +91,7 @@ export default function GeneratorProduct({
               {generatingStatus == 'expired' && (
                 <Stack alignment="center" spacing="extraTight">
                   <Icon source={AlertMinor} color="warning" />
-                  <TextStyle variation="warning">
-                    Reached free limit of 20 image generation.
-                  </TextStyle>
+                  <TextStyle variation="warning">Not enough credits.</TextStyle>
                 </Stack>
               )}
               {generatingStatus == 'error' && (

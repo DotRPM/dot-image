@@ -2,132 +2,176 @@ import {
   Card,
   Page,
   Layout,
-  List,
   Button,
-  TextContainer,
   TextStyle,
-  Badge
+  RangeSlider,
+  Stack,
+  ButtonGroup,
+  Badge,
+  Toast,
+  Frame
 } from '@shopify/polaris';
+import { ChevronLeftMinor, ChevronRightMinor } from '@shopify/polaris-icons';
 import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthenticatedFetch } from '../hooks';
 import ChatBanner from '../components/banners/ChatBanner';
-import { useNavigate } from 'react-router-dom';
 import { useAppBridge } from '@shopify/app-bridge-react';
 import { Redirect } from '@shopify/app-bridge/actions';
 import FreeLimitBanner from '../components/banners/FreeLimitBanner';
 
-export default function HomePage() {
+export default function PlansPage() {
   const fetch = useAuthenticatedFetch();
   const app = useAppBridge();
+  const navigate = useNavigate();
 
   const [fetching, setFetching] = useState(false);
-  const [plan, setPlan] = useState({});
+  const [searchParams, _setSearchParams] = useSearchParams();
+  const [fetchingCredits, setFetchingCredits] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [current, setCurrent] = useState(0);
+  const [credits, setCredits] = useState(100);
+  const creditsRate = 12;
 
-  useEffect(() => getPlan(), []);
+  useEffect(() => {
+    getCredits();
+    if (searchParams.get('charge_id')) {
+      activateCredits(searchParams.get('charge_id'));
+    }
+  }, []);
 
-  const getPlan = async () => {
+  const activateCredits = async (chargeId) => {
+    setFetchingCredits(true);
     setFetching(true);
-    const res = await fetch('/api/plans/');
+    const res = await fetch(`/api/plans/activate/${chargeId}`, {
+      method: 'post',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
     const data = await res.json();
-    setPlan(data);
+    if (data.credits) {
+      setCurrent(data.credits);
+      setShowToast(true);
+    }
     setFetching(false);
+    setFetchingCredits(false);
   };
 
-  const startProPlan = async () => {
+  const getCredits = async () => {
+    setFetchingCredits(true);
+    const res = await fetch('/api/shop/credits');
+    const data = await res.json();
+    setCurrent(data.credits);
+    setFetchingCredits(false);
+  };
+
+  const buyCredits = async () => {
     setFetching(true);
-    const res = await fetch('/api/plans/start');
+    const res = await fetch('/api/plans/buy', {
+      method: 'post',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        count: credits
+      })
+    });
     const data = await res.json();
     setFetching(false);
     const redirect = Redirect.create(app);
     redirect.dispatch(Redirect.Action.REMOTE, data.url);
   };
 
-  const startFreePlan = async () => {
-    setFetching(true);
-    await fetch('/api/plans/terminate');
-    setFetching(false);
-    await getPlan();
-  };
+  const toastMarkup = showToast && (
+    <Toast onDismiss={() => setShowToast(false)} content="Credits added" />
+  );
 
   return (
-    <Page title="Plans & pricing" breadcrumbs={[{ content: 'Home', url: '/' }]}>
-      <Layout>
-        <Layout.Section>
-          <ChatBanner />
-        </Layout.Section>
-        <Layout.Section>
-          <FreeLimitBanner />
-        </Layout.Section>
-        <Layout.Section oneHalf>
-          <Card title="Free">
-            <Card.Section>
-              <span style={{ fontSize: '30px' }}>
-                <TextStyle variation="strong">$ 0 /</TextStyle>{' '}
-              </span>
-              <TextStyle variation="strong">month</TextStyle>
-            </Card.Section>
-            <Card.Section>
-              <List type="bullet">
-                <List.Item>20 image generation</List.Item>
-                <List.Item>Support in less than 5 hours</List.Item>
-                <List.Item>Bulk image generation</List.Item>
-              </List>
-            </Card.Section>
-            <Card.Section>
-              {!plan.name ? (
-                <Button disabled>You are using this plan</Button>
-              ) : (
-                <Button onClick={startFreePlan} loading={fetching}>
-                  Use this plan
-                </Button>
-              )}
-            </Card.Section>
-          </Card>
-        </Layout.Section>
-
-        <Layout.Section oneHalf>
-          <Card
-            title="Pro"
-            actions={[
-              {
-                content: (
-                  <Badge status="success" size="medium">
-                    50% off
-                  </Badge>
-                )
-              }
-            ]}
-          >
-            <Card.Section>
-              <span style={{ fontSize: '30px' }}>
-                <TextStyle variation="strong">
-                  <strike style={{ color: 'red', fontSize: '1.5rem' }}>
-                    <span style={{ color: 'grey' }}>$ 12</span>
-                  </strike>{' '}
-                  $ 6 /
-                </TextStyle>{' '}
-              </span>
-              <TextStyle variation="strong">month</TextStyle>
-            </Card.Section>
-            <Card.Section>
-              <List type="bullet">
-                <List.Item>Unlimited image generation</List.Item>
-                <List.Item>Quick support</List.Item>
-                <List.Item>Custom features</List.Item>
-              </List>
-            </Card.Section>
-            <Card.Section>
-              {plan?.name == 'Pro plan' ? (
-                <Button disabled>You are using this plan</Button>
-              ) : (
-                <Button onClick={startProPlan} loading={fetching}>
-                  Use this plan
-                </Button>
-              )}
-            </Card.Section>
-          </Card>
-        </Layout.Section>
-      </Layout>
-    </Page>
+    <Frame>
+      <Page
+        title="Buy credits"
+        primaryAction={{
+          content: (
+            <TextStyle>
+              Credits <Badge status="attention">{current}</Badge>
+            </TextStyle>
+          ),
+          onAction: () => navigate('/plans'),
+          loading: fetchingCredits
+        }}
+        narrowWidth
+        breadcrumbs={[{ content: 'Home', url: '/' }]}
+      >
+        {toastMarkup}
+        <Layout>
+          <Layout.Section>
+            <ChatBanner />
+          </Layout.Section>
+          <Layout.Section>
+            <FreeLimitBanner />
+          </Layout.Section>
+          <Layout.Section>
+            <Card title="Credits">
+              <Card.Section>
+                <Stack distribution="equalSpacing" alignment="center">
+                  <TextStyle variation="strong">{credits} Credits</TextStyle>
+                  <ButtonGroup>
+                    <Button
+                      icon={ChevronLeftMinor}
+                      size="slim"
+                      onClick={() =>
+                        setCredits((state) => {
+                          if (state > 100) return state - 100;
+                          else return state;
+                        })
+                      }
+                    />
+                    <Button
+                      icon={ChevronRightMinor}
+                      size="slim"
+                      onClick={() =>
+                        setCredits((state) => {
+                          if (state < 2000) return state + 100;
+                          else return state;
+                        })
+                      }
+                    />
+                  </ButtonGroup>
+                </Stack>
+                <RangeSlider
+                  label="Credits"
+                  labelHidden
+                  step={100}
+                  max={2000}
+                  min={100}
+                  value={credits}
+                  onChange={(value) => setCredits(value)}
+                />
+              </Card.Section>
+              <Card.Section>
+                <Stack alignment="center" distribution="equalSpacing">
+                  <TextStyle variation="subdued">$12 / 100 credits</TextStyle>
+                  <Stack
+                    alignment="center"
+                    distribution="trailing"
+                    spacing="loose"
+                  >
+                    <TextStyle variation="positive">
+                      $ {(creditsRate * credits) / 100}
+                    </TextStyle>
+                    <Button primary loading={fetching} onClick={buyCredits}>
+                      Buy
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Card.Section>
+            </Card>
+          </Layout.Section>
+        </Layout>
+      </Page>
+    </Frame>
   );
 }

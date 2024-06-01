@@ -8,7 +8,12 @@ const ShopSchema = new Schema(
     name: String,
     domain: { type: String, unique: true },
     email: String,
-    usage: { type: Number, default: 0 }
+    credits: { type: Number, default: 20 },
+    chargeIds: [
+      {
+        type: String
+      }
+    ]
   },
   { timestamps: true }
 );

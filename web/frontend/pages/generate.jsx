@@ -6,24 +6,28 @@ import {
   Stack,
   TextStyle,
   Button,
-  Icon
+  Icon,
+  Badge
 } from '@shopify/polaris';
 import { StatusActiveMajor } from '@shopify/polaris-icons';
 import { useEffect, useState } from 'react';
 import { useAuthenticatedFetch } from '../hooks';
 import ChatBanner from '../components/banners/ChatBanner';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import FreeLimitBanner from '../components/banners/FreeLimitBanner';
 import GeneratorProduct from '../components/generator/GeneratorProduct';
 
 export default function HomePage() {
   const fetch = useAuthenticatedFetch();
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
   const [savingStatus, setSavingStatus] = useState('idle');
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [childsFetching, setChildsFetching] = useState(0);
   const [regenerateTrigger, setRegenerateTrigger] = useState(1);
+  const [fetchingCredits, setFetchingCredits] = useState(false);
+  const [credits, setCredits] = useState(0);
 
   // product ids
   const search = useLocation().search;
@@ -40,6 +44,7 @@ export default function HomePage() {
 
   useEffect(() => {
     loadProducts();
+    getCredits();
   }, []);
 
   const handleSave = async () => {
@@ -74,11 +79,28 @@ export default function HomePage() {
     setProducts(products.filter((item) => item.id != id));
   };
 
+  const getCredits = async () => {
+    setFetchingCredits(true);
+    const res = await fetch('/api/shop/credits');
+    const data = await res.json();
+    setCredits(data.credits);
+    setFetchingCredits(false);
+  };
+
   return (
     <Page
       title="Generate images"
       breadcrumbs={[{ content: 'Home', url: '/' }]}
       narrowWidth
+      primaryAction={{
+        content: (
+          <TextStyle>
+            Credits <Badge status="attention">{credits}</Badge>
+          </TextStyle>
+        ),
+        onAction: () => navigate('/plans'),
+        loading: fetchingCredits
+      }}
     >
       <Layout>
         <Layout.Section>

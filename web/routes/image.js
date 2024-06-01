@@ -15,10 +15,8 @@ router.get('/:title', async (req, res) => {
     const shopData = await Shop.findOne({
       domain: session.shop
     });
-    const plan = (await listActivePayments(session))[0];
 
-    // free limit is 20
-    if (shopData.usage < 20 || plan?.name == 'Pro plan') {
+    if (shopData.credits > 0) {
       const { data } = await client.post(
         'https://api.openai.com/v1/images/generations',
         {
@@ -26,7 +24,7 @@ router.get('/:title', async (req, res) => {
           size: '256x256'
         }
       );
-      shopData.usage = shopData.usage + 1;
+      shopData.credits -= 1;
       await shopData.save();
       res.status(200).json({ src: data.data[0].url });
     } else {

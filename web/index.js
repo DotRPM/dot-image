@@ -5,10 +5,14 @@ import express from 'express';
 import serveStatic from 'serve-static';
 
 import shopify from './shopify.js';
-import productCreator from './product-creator.js';
 import GDPRWebhookHandlers from './gdpr.js';
 
-import { imageRouter, plansRouter, productsRouter } from './routes/index.js';
+import {
+  imageRouter,
+  plansRouter,
+  productsRouter,
+  shopRouter
+} from './routes/index.js';
 import connectDb from './mongodb.js';
 import Shop from './models/Shop.js';
 
@@ -63,6 +67,7 @@ app.use(express.json());
 app.use('/api/products', productsRouter);
 app.use('/api/image', imageRouter);
 app.use('/api/plans', plansRouter);
+app.use('/api/shop', shopRouter);
 
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
