@@ -3,6 +3,7 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 import express from 'express';
 import serveStatic from 'serve-static';
+import 'dotenv/config';
 
 import shopify from './shopify.js';
 import GDPRWebhookHandlers from './gdpr.js';
