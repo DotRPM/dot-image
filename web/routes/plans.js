@@ -6,7 +6,7 @@ import Shop from '../models/Shop.js';
 const router = express.Router();
 
 // for 100 credits
-const CREDIT_RATE = 12;
+const CREDIT_RATE = 6;
 
 router.get('/', async (req, res) => {
   const session = res.locals.shopify.session;

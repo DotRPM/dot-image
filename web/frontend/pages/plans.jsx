@@ -31,7 +31,7 @@ export default function PlansPage() {
   const [showToast, setShowToast] = useState(false);
   const [current, setCurrent] = useState(0);
   const [credits, setCredits] = useState(100);
-  const creditsRate = 12;
+  const creditsRate = 6;
 
   useEffect(() => {
     getCredits();
@@ -153,7 +153,27 @@ export default function PlansPage() {
               </Card.Section>
               <Card.Section>
                 <Stack alignment="center" distribution="equalSpacing">
-                  <TextStyle variation="subdued">$12 / 100 credits</TextStyle>
+                  <p style={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                    <span
+                      style={{
+                        position: 'relative'
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '100%',
+                          height: '2px',
+                          position: 'absolute',
+                          background: 'red',
+                          top: '50%',
+                          left: 0,
+                          transform: 'translateY(-50%)'
+                        }}
+                      ></span>
+                      <span style={{ color: 'black' }}>$12</span>
+                    </span>{' '}
+                    ${creditsRate} / 100 credits
+                  </p>
                   <Stack
                     alignment="center"
                     distribution="trailing"
